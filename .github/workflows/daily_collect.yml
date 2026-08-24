@@ -23,7 +23,10 @@ jobs:
           pip install requests beautifulsoup4
 
       - name: 수집 파이썬 스크립트 실행
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          pip install google-generativeai
           python collector.py
 
       - name: 변경된 JSON 파일 깃허브 저장
