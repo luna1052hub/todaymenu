@@ -1,19 +1,49 @@
-// index.html 내 loadTrendingMenuData 함수 수정 부분
-async function loadTrendingMenuData() {
-  try {
-    const response = await fetch('./menu_data.json?v=' + new Date().getTime());
-    if (response.ok) {
-      menuList = await response.json();
-    } else {
-      throw new Error();
+let menuList = [];
+
+    // 실시간 수집된 트렌드 메뉴 JSON 불러오기
+    async function loadTrendingMenuData() {
+      try {
+        const response = await fetch('./menu_data.json?v=' + new Date().getTime());
+        if (response.ok) {
+          menuList = await response.json();
+        } else {
+          throw new Error('파일 로드 실패');
+        }
+      } catch (e) {
+        // 백업 데이터를 사용하지 않고 빈 배열로 처리합니다.
+        menuList = [];
+      }
     }
-  } catch (e) {
-    // 수집 파일 로드 실패 시에도 무조건 4개가 나오도록 4개 설정
-    menuList = [
-      { name: "돼지 김치찌개", emoji: "🥘", ingredients: "돼지고기, 신김치, 두부, 파", steps: ["1. 고기/김치 볶기", "2. 물 붓고 끓이기", "3. 두부 넣기"] },
-      { name: "차돌 된장찌개", emoji: "🍲", ingredients: "차돌박이, 된장, 애호박, 두부", steps: ["1. 고기 구워 기름내기", "2. 된장물/야채 넣기", "3. 끓이기"] },
-      { name: "매콤 제육볶음", emoji: "🥩", ingredients: "돼지 불고깃감, 고추장, 양파", steps: ["1. 양념 재우기", "2. 야채 준비", "3. 불향나게 볶기"] },
-      { name: "소불고기 전골", emoji: "🍲", ingredients: "소불고기, 버섯, 당면, 간장", steps: ["1. 양념하기", "2. 냄비에 담기", "3. 육수 붓고 끓이기"] }
-    ];
-  }
-}
+
+    // 추천 버튼 클릭 이벤트
+    document.getElementById('recommendBtn').addEventListener('click', () => {
+      const placeholder = document.getElementById('placeholder');
+      const menuGrid = document.getElementById('menuGrid');
+
+      // 데이터를 불러오지 못했거나 수집된 데이터가 없는 경우
+      if (!menuList || menuList.length === 0) {
+        placeholder.style.display = 'block';
+        placeholder.innerHTML = '⚠️ <b>데이터를 불러오지 못했습니다.</b><br>잠시 후 다시 시도해 주세요.';
+        menuGrid.style.display = 'none';
+        return;
+      }
+
+      const selectedMenus = getRandomMenus();
+      menuGrid.innerHTML = '';
+      
+      selectedMenus.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'menu-card';
+        card.innerHTML = `
+          <div class="menu-emoji">${item.emoji || '🔥'}</div>
+          <div class="menu-name">${item.name}</div>
+          <div class="sub-tip">레시피 보기 👆</div>
+        `;
+        card.addEventListener('click', () => openRecipeModal(item));
+        menuGrid.appendChild(card);
+      });
+
+      placeholder.style.display = 'none';
+      menuGrid.style.display = 'grid';
+      document.getElementById('recommendBtn').textContent = '🔄 다른 트렌드 메뉴 추천';
+    });
