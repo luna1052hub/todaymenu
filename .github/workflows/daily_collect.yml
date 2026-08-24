@@ -1,0 +1,35 @@
+name: Update Trending Menus
+
+on:
+  schedule:
+    # 매일 UTC 19:00 = 한국 시간 새벽 4시 자동 실행
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 환경 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 필요 라이브러리 설치
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: 수집 파이썬 스크립트 실행
+        run: |
+          python collector.py
+
+      - name: 변경된 JSON 파일 깃허브 저장
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add menu_data.json
+          git commit -m "Update trending menu data" || exit 0
+          git push
