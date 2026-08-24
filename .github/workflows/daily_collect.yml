@@ -2,7 +2,7 @@ name: Update Trending Menus
 
 on:
   schedule:
-    # 매일 UTC 19:00 = 한국 시간 새벽 4시 자동 실행
+    # 매일 한국 시간 새벽 4시 자동 실행
     - cron: '0 19 * * *'
   workflow_dispatch:
 
@@ -20,13 +20,12 @@ jobs:
 
       - name: 필요 라이브러리 설치
         run: |
-          pip install requests beautifulsoup4
+          pip install --upgrade google-generativeai requests beautifulsoup4
 
-      - name: 수집 파이썬 스크립트 실행
+      - name: 오늘 날짜 기준 AI 수집 스크립트 실행
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          pip install google-generativeai
           python collector.py
 
       - name: 변경된 JSON 파일 깃허브 저장
@@ -34,5 +33,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add menu_data.json
-          git commit -m "Update trending menu data" || exit 0
+          git commit -m "Update today trending menu data" || exit 0
           git push
