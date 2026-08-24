@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- 스마트폰 웹앱 설정 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -56,10 +55,9 @@
       position: relative;
     }
 
-    /* 1. 타이틀 */
     .header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .header h1 {
@@ -72,20 +70,19 @@
       gap: 8px;
     }
 
-    /* 2. 상단 날짜 및 날씨 정보 */
     .info-card {
       background-color: #fff0f0;
       border-radius: 14px;
-      padding: 16px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       border: 1px solid #ffe3e3;
     }
 
     .date-box .date-text {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #343a40;
     }
@@ -101,7 +98,7 @@
     }
 
     .weather-box .weather-icon {
-      font-size: 22px;
+      font-size: 20px;
     }
 
     .weather-box .weather-temp {
@@ -110,7 +107,6 @@
       color: #495057;
     }
 
-    /* 4. 추천 메뉴 결과 영역 */
     .recommend-section {
       flex: 1;
       display: flex;
@@ -140,14 +136,21 @@
     .menu-card {
       background-color: var(--bg-color);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
+      border-radius: 14px;
+      padding: 18px 12px;
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .menu-card:active {
+      transform: scale(0.97);
+      border-color: var(--primary-color);
     }
 
     .menu-card .menu-emoji {
-      font-size: 32px;
+      font-size: 36px;
       margin-bottom: 8px;
     }
 
@@ -157,9 +160,14 @@
       color: var(--text-color);
     }
 
-    /* 3. 하단 추천 버튼 */
+    .menu-card .sub-tip {
+      font-size: 11px;
+      color: var(--primary-color);
+      margin-top: 4px;
+    }
+
     .button-group {
-      margin-top: 24px;
+      margin-top: 20px;
     }
 
     .recommend-btn {
@@ -180,64 +188,232 @@
       transform: scale(0.98);
       background-color: var(--primary-hover);
     }
+
+    /* 팝업 모달 스타일 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-content {
+      background: white;
+      width: 100%;
+      max-width: 360px;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--subtext-color);
+    }
+
+    .recipe-section {
+      margin-bottom: 16px;
+    }
+
+    .recipe-section h4 {
+      font-size: 14px;
+      color: var(--primary-color);
+      margin-bottom: 6px;
+    }
+
+    .recipe-section p, .recipe-section ol {
+      font-size: 13px;
+      color: #495057;
+      line-height: 1.6;
+      padding-left: 16px;
+    }
+
+    .video-btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .video-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .youtube-btn { background-color: #ff0000; }
+    .insta-btn { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- 상단 영역 -->
     <div>
-      <!-- 1. 타이틀 -->
       <div class="header">
         <h1>🍳 저녁밥 뭐하지?</h1>
       </div>
 
-      <!-- 2. 오늘 날짜 및 날씨 -->
       <div class="info-card">
         <div class="date-box">
           <div class="date-text" id="currentDate">00월 00일</div>
           <div class="day-text" id="currentDay">월요일</div>
         </div>
         <div class="weather-box">
-          <span class="weather-icon" id="weatherIcon">☀️</span>
-          <div class="weather-temp" id="weatherText">맑음 (24°C)</div>
+          <span class="weather-icon" id="weatherIcon">⌛</span>
+          <div class="weather-temp" id="weatherText">날씨 불러오는 중...</div>
         </div>
       </div>
     </div>
 
-    <!-- 4. 메뉴 추천 영역 -->
     <div class="recommend-section">
       <div id="placeholder" class="placeholder-text">
-        하단의 버튼을 누르면<br>오늘 저녁에 딱 맞는 <b>4가지 메뉴</b>를 추천해 드려요! 😋
+        검색 트렌드 빅데이터 기반으로<br>오늘 저녁에 딱 맞는 <b>4가지 메뉴</b>를 추천해 드려요! 😋
       </div>
       <div id="menuGrid" class="menu-grid" style="display: none;"></div>
     </div>
 
-    <!-- 3. 메인 하단 버튼 -->
     <div class="button-group">
       <button class="recommend-btn" id="recommendBtn">🎲 오늘 저녁 메뉴 추천받기</button>
     </div>
   </div>
 
+  <!-- 레시피 팝업 모달 -->
+  <div class="modal-overlay" id="recipeModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalMenuName">🍲 메뉴명</div>
+        <button class="close-btn" id="closeModalBtn">✕</button>
+      </div>
+      
+      <div class="recipe-section">
+        <h4>🛒 주요 재료</h4>
+        <p id="modalIngredients">재료 정보</p>
+      </div>
+
+      <div class="recipe-section">
+        <h4>🍳 3단계 초간단 조리법</h4>
+        <ol id="modalSteps">
+          <li>1단계</li>
+          <li>2단계</li>
+          <li>3단계</li>
+        </ol>
+      </div>
+
+      <div class="video-btn-group">
+        <a href="#" target="_blank" class="video-btn youtube-btn" id="youtubeLink">▶️ 유튜브 영상</a>
+        <a href="#" target="_blank" class="video-btn insta-btn" id="instaLink">📸 인스타그램</a>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // 메뉴 데이터베이스 (음식 + 이모지)
+    // 검색 트렌드 인기 집밥 메뉴 데이터베이스 (재료 및 레시피 포함)
     const menuList = [
-      { name: "김치찌개", emoji: "🥘" },
-      { name: "된장찌개", emoji: "🍲" },
-      { name: "제육볶음", emoji: "🥩" },
-      { name: "삼겹살 구이", emoji: "🥓" },
-      { name: "계란말이 & 스팸", emoji: "🍳" },
-      { name: "닭볶음탕", emoji: "🍗" },
-      { name: "불고기", emoji: "🥩" },
-      { name: "비빔밥", emoji: "🥗" },
-      { name: "카레라이스", emoji: "🍛" },
-      { name: "짜장라면 & 계란", emoji: "🍜" },
-      { name: "부대찌개", emoji: "🥘" },
-      { name: "생선구이 & 미역국", emoji: "🐟" },
-      { name: "떡볶이 & 튀김", emoji: "🍢" },
-      { name: "소불고기 전골", emoji: "🍲" },
-      { name: "돈까스", emoji: "🍱" },
-      { name: "파스타", emoji: "🍝" }
+      {
+        name: "돼지 김치찌개", emoji: "🥘",
+        ingredients: "신김치 200g, 돼지고기(목살/삼겹) 150g, 두부 반모, 대파, 마늘, 국간장",
+        steps: [
+          "돼지고기를 먼저 냄비에 볶아 기름을 냅니다.",
+          "신김치와 마늘을 넣고 함께 달달 볶아줍니다.",
+          "물(또는 쌀뜸물)을 붓고 푹 끓인 뒤 두부와 파를 넣어 완성합니다."
+        ]
+      },
+      {
+        name: "차돌 된장찌개", emoji: "🍲",
+        ingredients: "차돌박이 100g, 된장 2스푼, 애호박, 양파, 두부, 청양고추",
+        steps: [
+          "냄비에 차돌박이를 구워 고소한 기름을 냅니다.",
+          "물과 된장을 풀고 썰어둔 애호박, 양파를 넣습니다.",
+          "두부와 청양고추를 넣고 칼칼하게 한소끔 더 끓여냅니다."
+        ]
+      },
+      {
+        name: "매콤 제육볶음", emoji: "🥩",
+        ingredients: "돼지 불고깃감 300g, 고추장 2스푼, 고춧가루, 간장, 설탕, 양파, 대파",
+        steps: [
+          "고추장, 간장, 설탕으로 양념장을 만듭니다.",
+          "고기와 양념을 조물조물 재워둡니다.",
+          "달군 팬에 센 불로 대파, 양파와 함께 불향 나게 볶아냅니다."
+        ]
+      },
+      {
+        name: "소불고기 전골", emoji: "🍲",
+        ingredients: "소불고깃감 200g, 팽이버섯, 표고버섯, 당면, 간장 3스푼, 올리고당",
+        steps: [
+          "불고깃감은 간장, 마늘, 설탕 양념에 재워둡니다.",
+          "전골냄비에 버섯, 야채, 불린 당면을 예쁘게 담습니다.",
+          "육수를 자작하게 붓고 끓이면서 자작하게 즐깁니다."
+        ]
+      },
+      {
+        name: "계란말이 & 스팸", emoji: "🍳",
+        ingredients: "계란 4개, 스팸 1캔, 다진 대파, 소금 약간, 케찹",
+        steps: [
+          "스팸은 노릇노릇하게 구워 준비합니다.",
+          "풀어둔 계란물에 대파를 넣고 돌돌 말아가며 계란말이를 만듭니다.",
+          "스팸과 계란말이를 접시에 함께 담아 케찹과 곁들입니다."
+        ]
+      },
+      {
+        name: "국물 닭볶음탕", emoji: "🍗",
+        ingredients: "토막 닭 1마리, 감자 2개, 당근, 양파, 고추장, 고춧가루, 간장",
+        steps: [
+          "닭은 데쳐서 불순물을 제거해 둡니다.",
+          "양념장과 물, 감자, 당근을 넣고 센 불에서 끓입니다.",
+          "국물이 자작해지고 감자가 익을 때까지 푹 졸여줍니다."
+        ]
+      },
+      {
+        name: "스팸 마요 덮밥", emoji: "🍛",
+        ingredients: "밥 1공기, 스팸 반캔, 계란 2개, 마요네즈, 데리야끼 소스, 김가루",
+        steps: [
+          "스팸은 깍둑썰기하여 노릇하게 볶고 계란은 스크램블 합니다.",
+          "밥 위에 스크램블 계란과 스팸을 얹습니다.",
+          "마요네즈와 데리야끼 소스를 뿌린 뒤 김가루로 마무리합니다."
+        ]
+      },
+      {
+        name: "백종원식 볶음밥", emoji: "🍳",
+        ingredients: "밥 1공기, 대파 1대, 계란 2개, 굴소스 1스푼, 식용유",
+        steps: [
+          "식용유에 다진 대파를 듬뿍 넣고 파기름을 냅니다.",
+          "한쪽에 계란을 넣어 스크램블하고 굴소스로 간을 합니다.",
+          "밥을 넣고 불을 끈 상태에서 잘 섞은 뒤 센 불로 볶아냅니다."
+        ]
+      }
     ];
 
     // 날짜 및 요일 자동 설정
@@ -252,21 +428,44 @@
       document.getElementById('currentDay').textContent = dayName;
     }
 
-    // 날씨 정보 (가상 데이터 / 추후 위치 API 연동 가능)
+    // 실시간 날씨 API (Open-Meteo 무료 API 연동)
     function initWeather() {
-      const weatherOptions = [
-        { icon: "☀️", text: "맑음 (24°C)" },
-        { icon: "⛅", text: "구름조금 (22°C)" },
-        { icon: "🌧️", text: "비옴 (20°C)" },
-        { icon: "☁️", text: "흐림 (21°C)" }
-      ];
-      // 오늘 날짜 기반 무작위 날씨 선택
-      const todayWeather = weatherOptions[new Date().getDate() % weatherOptions.length];
-      document.getElementById('weatherIcon').textContent = todayWeather.icon;
-      document.getElementById('weatherText').textContent = todayWeather.text;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+              .then(res => res.json())
+              .then(data => {
+                const temp = Math.round(data.current_weather.temperature);
+                const code = data.current_weather.weathercode;
+                let icon = "☀️";
+                let status = "맑음";
+
+                if (code >= 1 && code <= 3) { icon = "⛅"; status = "구름조금"; }
+                else if (code >= 45 && code <= 48) { icon = "🌫️"; status = "안개"; }
+                else if (code >= 51 && code <= 67) { icon = "🌧️"; status = "비옴"; }
+                else if (code >= 71) { icon = "❄️"; status = "눈옴"; }
+
+                document.getElementById('weatherIcon').textContent = icon;
+                document.getElementById('weatherText').textContent = `${status} (${temp}°C)`;
+              })
+              .catch(() => setFallbackWeather());
+          },
+          () => setFallbackWeather()
+        );
+      } else {
+        setFallbackWeather();
+      }
     }
 
-    // 4가지 무작위 메뉴 추천 알고리즘
+    function setFallbackWeather() {
+      document.getElementById('weatherIcon').textContent = "☀️";
+      document.getElementById('weatherText').textContent = "맑음 (24°C)";
+    }
+
+    // 4가지 메뉴 무작위 추출
     function getRandomMenus() {
       const shuffled = [...menuList].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, 4);
@@ -286,18 +485,53 @@
         card.innerHTML = `
           <div class="menu-emoji">${item.emoji}</div>
           <div class="menu-name">${item.name}</div>
+          <div class="sub-tip">레시피 보기 👆</div>
         `;
+        
+        // 카드 클릭 시 팝업창 띄우기
+        card.addEventListener('click', () => openRecipeModal(item));
         menuGrid.appendChild(card);
       });
 
       placeholder.style.display = 'none';
       menuGrid.style.display = 'grid';
       
-      // 버튼 텍스트 변경
       document.getElementById('recommendBtn').textContent = '🔄 다른 메뉴 추천받기';
     });
 
-    // 앱 시작 실행
+    // 레시피 모달 팝업 열기
+    function openRecipeModal(menu) {
+      document.getElementById('modalMenuName').textContent = `${menu.emoji} ${menu.name}`;
+      document.getElementById('modalIngredients').textContent = menu.ingredients;
+      
+      const stepsList = document.getElementById('modalSteps');
+      stepsList.innerHTML = '';
+      menu.steps.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        stepsList.appendChild(li);
+      });
+
+      // 영상 바로가기 검색 링크 생성
+      const encodedName = encodeURIComponent(menu.name + " 레시피");
+      document.getElementById('youtubeLink').href = `https://www.youtube.com/results?search_query=${encodedName}`;
+      document.getElementById('instaLink').href = `https://www.instagram.com/explore/tags/${encodeURIComponent(menu.name)}`;
+
+      document.getElementById('recipeModal').style.display = 'flex';
+    }
+
+    // 모달 닫기
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      document.getElementById('recipeModal').style.display = 'none';
+    });
+
+    document.getElementById('recipeModal').addEventListener('click', (e) => {
+      if (e.target.id === 'recipeModal') {
+        document.getElementById('recipeModal').style.display = 'none';
+      }
+    });
+
+    // 시작 실행
     initDate();
     initWeather();
   </script>
