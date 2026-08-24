@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>저녁밥 뭐하지?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- 스마트폰 웹앱 설정 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --primary-color: #ff6b6b;
+      --primary-hover: #ff5252;
+      --text-color: #212529;
+      --subtext-color: #868e96;
+      --border-color: #f1f3f5;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 420px;
+      min-height: 680px;
+      padding: 24px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* 1. 타이틀 */
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* 2. 상단 날짜 및 날씨 정보 */
+    .info-card {
+      background-color: #fff0f0;
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border: 1px solid #ffe3e3;
+    }
+
+    .date-box .date-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: #343a40;
+    }
+
+    .date-box .day-text {
+      font-size: 13px;
+      color: var(--subtext-color);
+      margin-top: 2px;
+    }
+
+    .weather-box {
+      text-align: right;
+    }
+
+    .weather-box .weather-icon {
+      font-size: 22px;
+    }
+
+    .weather-box .weather-temp {
+      font-size: 14px;
+      font-weight: 600;
+      color: #495057;
+    }
+
+    /* 4. 추천 메뉴 결과 영역 */
+    .recommend-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .placeholder-text {
+      text-align: center;
+      color: var(--subtext-color);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .menu-card {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .menu-card .menu-emoji {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .menu-card .menu-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-color);
+    }
+
+    /* 3. 하단 추천 버튼 */
+    .button-group {
+      margin-top: 24px;
+    }
+
+    .recommend-btn {
+      width: 100%;
+      padding: 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .recommend-btn:active {
+      transform: scale(0.98);
+      background-color: var(--primary-hover);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- 상단 영역 -->
+    <div>
+      <!-- 1. 타이틀 -->
+      <div class="header">
+        <h1>🍳 저녁밥 뭐하지?</h1>
+      </div>
+
+      <!-- 2. 오늘 날짜 및 날씨 -->
+      <div class="info-card">
+        <div class="date-box">
+          <div class="date-text" id="currentDate">00월 00일</div>
+          <div class="day-text" id="currentDay">월요일</div>
+        </div>
+        <div class="weather-box">
+          <span class="weather-icon" id="weatherIcon">☀️</span>
+          <div class="weather-temp" id="weatherText">맑음 (24°C)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 메뉴 추천 영역 -->
+    <div class="recommend-section">
+      <div id="placeholder" class="placeholder-text">
+        하단의 버튼을 누르면<br>오늘 저녁에 딱 맞는 <b>4가지 메뉴</b>를 추천해 드려요! 😋
+      </div>
+      <div id="menuGrid" class="menu-grid" style="display: none;"></div>
+    </div>
+
+    <!-- 3. 메인 하단 버튼 -->
+    <div class="button-group">
+      <button class="recommend-btn" id="recommendBtn">🎲 오늘 저녁 메뉴 추천받기</button>
+    </div>
+  </div>
+
+  <script>
+    // 메뉴 데이터베이스 (음식 + 이모지)
+    const menuList = [
+      { name: "김치찌개", emoji: "🥘" },
+      { name: "된장찌개", emoji: "🍲" },
+      { name: "제육볶음", emoji: "🥩" },
+      { name: "삼겹살 구이", emoji: "🥓" },
+      { name: "계란말이 & 스팸", emoji: "🍳" },
+      { name: "닭볶음탕", emoji: "🍗" },
+      { name: "불고기", emoji: "🥩" },
+      { name: "비빔밥", emoji: "🥗" },
+      { name: "카레라이스", emoji: "🍛" },
+      { name: "짜장라면 & 계란", emoji: "🍜" },
+      { name: "부대찌개", emoji: "🥘" },
+      { name: "생선구이 & 미역국", emoji: "🐟" },
+      { name: "떡볶이 & 튀김", emoji: "🍢" },
+      { name: "소불고기 전골", emoji: "🍲" },
+      { name: "돈까스", emoji: "🍱" },
+      { name: "파스타", emoji: "🍝" }
+    ];
+
+    // 날짜 및 요일 자동 설정
+    function initDate() {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const date = now.getDate();
+      const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const dayName = days[now.getDay()];
+
+      document.getElementById('currentDate').textContent = `${month}월 ${date}일`;
+      document.getElementById('currentDay').textContent = dayName;
+    }
+
+    // 날씨 정보 (가상 데이터 / 추후 위치 API 연동 가능)
+    function initWeather() {
+      const weatherOptions = [
+        { icon: "☀️", text: "맑음 (24°C)" },
+        { icon: "⛅", text: "구름조금 (22°C)" },
+        { icon: "🌧️", text: "비옴 (20°C)" },
+        { icon: "☁️", text: "흐림 (21°C)" }
+      ];
+      // 오늘 날짜 기반 무작위 날씨 선택
+      const todayWeather = weatherOptions[new Date().getDate() % weatherOptions.length];
+      document.getElementById('weatherIcon').textContent = todayWeather.icon;
+      document.getElementById('weatherText').textContent = todayWeather.text;
+    }
+
+    // 4가지 무작위 메뉴 추천 알고리즘
+    function getRandomMenus() {
+      const shuffled = [...menuList].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, 4);
+    }
+
+    // 버튼 클릭 이벤트
+    document.getElementById('recommendBtn').addEventListener('click', () => {
+      const placeholder = document.getElementById('placeholder');
+      const menuGrid = document.getElementById('menuGrid');
+      
+      const selectedMenus = getRandomMenus();
+      
+      menuGrid.innerHTML = '';
+      selectedMenus.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'menu-card';
+        card.innerHTML = `
+          <div class="menu-emoji">${item.emoji}</div>
+          <div class="menu-name">${item.name}</div>
+        `;
+        menuGrid.appendChild(card);
+      });
+
+      placeholder.style.display = 'none';
+      menuGrid.style.display = 'grid';
+      
+      // 버튼 텍스트 변경
+      document.getElementById('recommendBtn').textContent = '🔄 다른 메뉴 추천받기';
+    });
+
+    // 앱 시작 실행
+    initDate();
+    initWeather();
+  </script>
+</body>
+</html>
