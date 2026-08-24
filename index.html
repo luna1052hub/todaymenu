@@ -73,7 +73,7 @@
     .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--subtext-color); }
     .recipe-section { margin-bottom: 16px; }
     .recipe-section h4 { font-size: 14px; color: var(--primary-color); margin-bottom: 6px; }
-    .recipe-section p, .recipe-section ol { font-size: 13px; color: #495057; line-height: 1.6; padding-left: 16px; }
+    .recipe-section p, .recipe-section ol { font-size: 13px; color: #495057; line-height: 1.6; padding-left: 18px; }
     .video-btn-group { display: flex; gap: 8px; margin-top: 16px; }
     .video-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-size: 12px; font-weight: 700; color: white; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .youtube-btn { background-color: #ff0000; }
@@ -102,7 +102,7 @@
 
     <div class="recommend-section">
       <div id="placeholder" class="placeholder-text">
-        🔥 구글 실시간 급상승 트렌드를 분석하여<br>오늘 가장 핫한 <b>4가지 메뉴</b>를 추천해 드려요! 😋
+        🔥 최근 검색 트렌드를 분석하여<br>오늘 가장 핫한 <b>4가지 메뉴</b>를 추천해 드려요! 😋
       </div>
       <div id="menuGrid" class="menu-grid" style="display: none;"></div>
     </div>
@@ -139,7 +139,6 @@
   <script>
     let menuList = [];
 
-    // 구글 트렌드에서 수집된 json 파일 불러오기
     async function loadTrendingMenuData() {
       try {
         const response = await fetch('./menu_data.json?v=' + new Date().getTime());
@@ -149,7 +148,6 @@
           menuList = [];
         }
       } catch (e) {
-        // 실패 시 고정 메뉴를 쓰지 않고 빈 데이터로 둡니다.
         menuList = [];
       }
     }
@@ -194,7 +192,6 @@
       const placeholder = document.getElementById('placeholder');
       const menuGrid = document.getElementById('menuGrid');
 
-      // 불러온 실시간 데이터가 없는 경우 문구 표시
       if (!menuList || menuList.length === 0) {
         placeholder.style.display = 'block';
         placeholder.innerHTML = '⚠️ <b>데이터를 불러오지 못했습니다.</b><br>잠시 후 다시 시도해 주세요.';
@@ -209,7 +206,7 @@
         const card = document.createElement('div');
         card.className = 'menu-card';
         card.innerHTML = `
-          <div class="menu-emoji">${item.emoji || '🔥'}</div>
+          <div class="menu-emoji">${item.emoji || '🍲'}</div>
           <div class="menu-name">${item.name}</div>
           <div class="sub-tip">레시피 보기 👆</div>
         `;
@@ -223,7 +220,7 @@
     });
 
     function openRecipeModal(menu) {
-      document.getElementById('modalMenuName').textContent = `${menu.emoji || '🔥'} ${menu.name}`;
+      document.getElementById('modalMenuName').textContent = `${menu.emoji || '🍲'} ${menu.name}`;
       document.getElementById('modalIngredients').textContent = menu.ingredients;
       
       const stepsList = document.getElementById('modalSteps');
@@ -231,6 +228,7 @@
       if (menu.steps && menu.steps.length > 0) {
         menu.steps.forEach(step => {
           const li = document.createElement('li');
+          // 숫자를 직접 적지 않고 텍스트만 주입하여 <ol> 번호 중복 해결
           li.textContent = step;
           stepsList.appendChild(li);
         });
