@@ -2,7 +2,6 @@ name: Update Trending Menus
 
 on:
   schedule:
-    # 매일 한국 시간 새벽 4시 자동 실행
     - cron: '0 19 * * *'
   workflow_dispatch:
 
@@ -18,20 +17,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 필요 라이브러리 설치
+      - name: 구글 트렌드 분석 라이브러리 설치
         run: |
-          pip install --upgrade google-generativeai requests beautifulsoup4
+          pip install pytrends pandas requests
 
-      - name: 오늘 날짜 기준 AI 수집 스크립트 실행
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: 구글 3일 평균 검색량 1~4위 수집 스크립트 실행
         run: |
           python collector.py
 
-      - name: 변경된 JSON 파일 깃허브 저장
+      - name: 깃허브 변경사항 저장
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add menu_data.json
-          git commit -m "Update today trending menu data" || exit 0
+          git commit -m "Update Top 4 Google Trending Menus" || exit 0
           git push
