@@ -37,8 +37,8 @@
     .date-box .date-text { font-size: 15px; font-weight: 700; color: #343a40; }
     .date-box .day-text { font-size: 13px; color: var(--subtext-color); margin-top: 2px; }
     .weather-box { text-align: right; }
-    .weather-box .weather-icon { font-size: 20px; }
-    .weather-box .weather-temp { font-size: 14px; font-weight: 600; color: #495057; }
+    .weather-box .weather-icon { font-size: 18px; margin-right: 2px; }
+    .weather-box .weather-temp { font-size: 13px; font-weight: 600; color: #495057; }
 
     .recommend-section { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .placeholder-text { text-align: center; color: var(--subtext-color); font-size: 15px; line-height: 1.6; }
@@ -91,8 +91,7 @@
           <div class="day-text" id="currentDay">월요일</div>
         </div>
         <div class="weather-box">
-          <span class="weather-icon" id="weatherIcon">⌛</span>
-          <div class="weather-temp" id="weatherText">날씨 불러오는 중...</div>
+          <div class="weather-temp" id="weatherText">⌛ 위치/날씨 조회 중...</div>
         </div>
       </div>
     </div>
@@ -105,7 +104,7 @@
     </div>
 
     <div class="button-group">
-      <button class="recommend-btn" id="recommendBtn">🎲 오늘 저녁 트렌드 메뉴 추천</button>
+      <button class="recommend-btn" id="recommendBtn">🔥 오늘의 인기 메뉴</button>
     </div>
   </div>
 
@@ -157,7 +156,6 @@
       document.getElementById('currentDay').textContent = days[now.getDay()];
     }
 
-    // WMO 날씨 코드를 한국어 텍스트와 이모지로 변환
     function parseWeatherCode(code) {
       if (code === 0) return { text: "맑음", icon: "☀️" };
       if (code >= 1 && code <= 3) return { text: "구름조금", icon: "⛅" };
@@ -169,45 +167,63 @@
       return { text: "흐림", icon: "☁️" };
     }
 
-    function fetchWeatherData(lat, lon) {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    // 좌표 기반 동네 이름 가져오기 (BigDataCloud Free Reverse Geocoding API)
+    async function getRegionName(lat, lon) {
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+        const data = await res.json();
+        
+        // 시/군/구 명칭 추출
+        const city = data.city || data.locality || data.principalSubdivision;
+        if (city) {
+          return city.replace("서울특별시", "서울").replace("광역시", "").replace("특별자치시", "");
+        }
+      } catch (e) {
+        console.log("지역명 조회 실패:", e);
+      }
+      return "서울";
+    }
+
+    async function fetchWeatherData(lat, lon, isFallback = false) {
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
       
-      fetch(url)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.current_weather) {
-            const temp = Math.round(data.current_weather.temperature);
-            const weatherInfo = parseWeatherCode(data.current_weather.weathercode);
-            
-            document.getElementById('weatherIcon').textContent = weatherInfo.icon;
-            document.getElementById('weatherText').textContent = `${weatherInfo.text} (${temp}°C)`;
-          } else {
-            setFallbackWeather();
-          }
-        })
-        .catch(() => setFallbackWeather());
+      try {
+        const regionName = isFallback ? "서울" : await getRegionName(lat, lon);
+        const res = await fetch(weatherUrl);
+        const data = await res.json();
+
+        if (data && data.current_weather) {
+          const temp = Math.round(data.current_weather.temperature);
+          const weatherInfo = parseWeatherCode(data.current_weather.weathercode);
+          
+          document.getElementById('weatherText').textContent = `${regionName} ${weatherInfo.icon} ${weatherInfo.text} (${temp}°C)`;
+        } else {
+          setFallbackWeather();
+        }
+      } catch (e) {
+        setFallbackWeather();
+      }
     }
 
     function initWeather() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            fetchWeatherData(pos.coords.latitude, pos.coords.longitude);
+            fetchWeatherData(pos.coords.latitude, pos.coords.longitude, false);
           },
           () => {
-            // 위치 권한 거부 시 기본 서울 좌표
-            fetchWeatherData(37.5665, 126.9780);
+            // 위치 권한 거부 시 서울 기준
+            fetchWeatherData(37.5665, 126.9780, true);
           },
           { timeout: 5000 }
         );
       } else {
-        fetchWeatherData(37.5665, 126.9780);
+        fetchWeatherData(37.5665, 126.9780, true);
       }
     }
 
     function setFallbackWeather() {
-      document.getElementById('weatherIcon').textContent = "🌡️";
-      document.getElementById('weatherText').textContent = "날씨 정보 없음";
+      document.getElementById('weatherText').textContent = "서울 🌡️ 날씨 정보 없음";
     }
 
     function getNext4Menus() {
@@ -248,7 +264,7 @@
 
       placeholder.style.display = 'none';
       menuGrid.style.display = 'grid';
-      document.getElementById('recommendBtn').textContent = '🔄 다른 트렌드 메뉴 추천';
+      document.getElementById('recommendBtn').textContent = '🔄 다른 인기 메뉴 추천';
     });
 
     function openRecipeModal(menu) {
