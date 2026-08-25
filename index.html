@@ -37,23 +37,29 @@
     .date-box .date-text { font-size: 15px; font-weight: 700; color: #343a40; }
     .date-box .day-text { font-size: 13px; color: var(--subtext-color); margin-top: 2px; }
     .weather-box { text-align: right; }
-    .weather-box .weather-icon { font-size: 18px; margin-right: 2px; }
     .weather-box .weather-temp { font-size: 13px; font-weight: 600; color: #495057; }
 
-    .recommend-section { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .recommend-section { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; }
     .placeholder-text { text-align: center; color: var(--subtext-color); font-size: 15px; line-height: 1.6; }
 
-    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; animation: fadeIn 0.4s ease-out; }
+    /* 4개 카드가 2x2로 정확하게 보이도록 그리드 고정 */
+    .menu-grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 12px; 
+      width: 100%;
+      animation: fadeIn 0.4s ease-out; 
+    }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     .menu-card {
-      background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s, border-color 0.2s; position: relative;
+      background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s, border-color 0.2s; position: relative; width: 100%;
     }
     .menu-card:active { transform: scale(0.97); border-color: var(--primary-color); }
-    .rank-badge { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700; background: #ffe3e3; color: var(--primary-color); padding: 2px 6px; border-radius: 8px; }
-    .menu-card .menu-emoji { font-size: 36px; margin: 8px 0 6px 0; }
-    .menu-card .menu-name { font-size: 15px; font-weight: 700; color: var(--text-color); }
-    .menu-card .sub-tip { font-size: 11px; color: var(--primary-color); margin-top: 4px; }
+    .rank-badge { position: absolute; top: 6px; left: 6px; font-size: 9px; font-weight: 700; background: #ffe3e3; color: var(--primary-color); padding: 2px 5px; border-radius: 6px; }
+    .menu-card .menu-emoji { font-size: 34px; margin: 8px 0 4px 0; }
+    .menu-card .menu-name { font-size: 14px; font-weight: 700; color: var(--text-color); word-break: keep-all; }
+    .menu-card .sub-tip { font-size: 10px; color: var(--primary-color); margin-top: 4px; }
 
     .button-group { margin-top: 20px; }
     .recommend-btn {
@@ -140,7 +146,13 @@
       try {
         const response = await fetch('./menu_data.json?v=' + new Date().getTime());
         if (response.ok) {
-          fullMenuList = await response.json();
+          const data = await response.json();
+          // 배열 형식이 맞는지 검증
+          if (Array.isArray(data)) {
+            fullMenuList = data;
+          } else {
+            fullMenuList = [];
+          }
         }
       } catch (e) {
         fullMenuList = [];
@@ -167,13 +179,10 @@
       return { text: "흐림", icon: "☁️" };
     }
 
-    // 좌표 기반 동네 이름 가져오기 (BigDataCloud Free Reverse Geocoding API)
     async function getRegionName(lat, lon) {
       try {
         const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
         const data = await res.json();
-        
-        // 시/군/구 명칭 추출
         const city = data.city || data.locality || data.principalSubdivision;
         if (city) {
           return city.replace("서울특별시", "서울").replace("광역시", "").replace("특별자치시", "");
@@ -212,7 +221,6 @@
             fetchWeatherData(pos.coords.latitude, pos.coords.longitude, false);
           },
           () => {
-            // 위치 권한 거부 시 서울 기준
             fetchWeatherData(37.5665, 126.9780, true);
           },
           { timeout: 5000 }
@@ -226,6 +234,7 @@
       document.getElementById('weatherText').textContent = "서울 🌡️ 날씨 정보 없음";
     }
 
+    // 4개씩 포인터를 이동하며 자르는 함수
     function getNext4Menus() {
       if (currentIndex >= fullMenuList.length) {
         currentIndex = 0;
