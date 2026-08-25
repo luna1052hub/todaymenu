@@ -91,8 +91,8 @@
           <div class="day-text" id="currentDay">월요일</div>
         </div>
         <div class="weather-box">
-          <span class="weather-icon" id="weatherIcon">☀️</span>
-          <div class="weather-temp" id="weatherText">맑음 (24°C)</div>
+          <span class="weather-icon" id="weatherIcon">⌛</span>
+          <div class="weather-temp" id="weatherText">날씨 불러오는 중...</div>
         </div>
       </div>
     </div>
@@ -135,7 +135,7 @@
 
   <script>
     let fullMenuList = [];
-    let currentIndex = 0; // 보여줄 시작 위치 인덱스
+    let currentIndex = 0;
 
     async function loadTrendingMenuData() {
       try {
@@ -157,16 +157,65 @@
       document.getElementById('currentDay').textContent = days[now.getDay()];
     }
 
-    // 인덱스 기반으로 4개씩 슬라이스 (절대 중복 없음)
+    // WMO 날씨 코드를 한국어 텍스트와 이모지로 변환
+    function parseWeatherCode(code) {
+      if (code === 0) return { text: "맑음", icon: "☀️" };
+      if (code >= 1 && code <= 3) return { text: "구름조금", icon: "⛅" };
+      if (code === 45 || code === 48) return { text: "안개", icon: "🌫️" };
+      if (code >= 51 && code <= 67) return { text: "비", icon: "🌧️" };
+      if (code >= 71 && code <= 77) return { text: "눈", icon: "❄️" };
+      if (code >= 80 && code <= 82) return { text: "소나기", icon: "🌦️" };
+      if (code >= 95) return { text: "뇌우", icon: "🌩️" };
+      return { text: "흐림", icon: "☁️" };
+    }
+
+    function fetchWeatherData(lat, lon) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+      
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.current_weather) {
+            const temp = Math.round(data.current_weather.temperature);
+            const weatherInfo = parseWeatherCode(data.current_weather.weathercode);
+            
+            document.getElementById('weatherIcon').textContent = weatherInfo.icon;
+            document.getElementById('weatherText').textContent = `${weatherInfo.text} (${temp}°C)`;
+          } else {
+            setFallbackWeather();
+          }
+        })
+        .catch(() => setFallbackWeather());
+    }
+
+    function initWeather() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            fetchWeatherData(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {
+            // 위치 권한 거부 시 기본 서울 좌표
+            fetchWeatherData(37.5665, 126.9780);
+          },
+          { timeout: 5000 }
+        );
+      } else {
+        fetchWeatherData(37.5665, 126.9780);
+      }
+    }
+
+    function setFallbackWeather() {
+      document.getElementById('weatherIcon').textContent = "🌡️";
+      document.getElementById('weatherText').textContent = "날씨 정보 없음";
+    }
+
     function getNext4Menus() {
-      // 끝까지 가거나 4개가 안 남으면 다시 처음부터
       if (currentIndex >= fullMenuList.length) {
         currentIndex = 0;
       }
-
       const selected = fullMenuList.slice(currentIndex, currentIndex + 4);
-      currentIndex += 4; // 다음 4개 위치로 포인터 이동
-
+      currentIndex += 4;
       return selected;
     }
 
@@ -228,6 +277,7 @@
     });
 
     initDate();
+    initWeather();
     loadTrendingMenuData();
   </script>
 </body>
