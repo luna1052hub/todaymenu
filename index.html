@@ -36,16 +36,19 @@
     }
     .date-box .date-text { font-size: 15px; font-weight: 700; color: #343a40; }
     .date-box .day-text { font-size: 13px; color: var(--subtext-color); margin-top: 2px; }
-    .weather-box { text-align: right; }
-    .weather-box .weather-temp { font-size: 13px; font-weight: 600; color: #495057; }
+    
+    /* 위치 아래 날씨 배치를 위한 flex 구조 */
+    .weather-box { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+    .weather-box .location-text { font-size: 13px; font-weight: 700; color: #343a40; }
+    .weather-box .weather-temp { font-size: 13px; font-weight: 600; color: var(--primary-color); margin-top: 2px; }
 
     .recommend-section { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; }
     .placeholder-text { text-align: center; color: var(--subtext-color); font-size: 15px; line-height: 1.6; }
 
-    /* 4개 카드가 2x2로 정확하게 보이도록 그리드 고정 */
+    /* 2x2 그리드 강제 보장 */
     .menu-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
+      display: grid !important; 
+      grid-template-columns: repeat(2, 1fr) !important; 
       gap: 12px; 
       width: 100%;
       animation: fadeIn 0.4s ease-out; 
@@ -97,7 +100,8 @@
           <div class="day-text" id="currentDay">월요일</div>
         </div>
         <div class="weather-box">
-          <div class="weather-temp" id="weatherText">⌛ 위치/날씨 조회 중...</div>
+          <div class="location-text" id="locationName">📍 위치 확인 중</div>
+          <div class="weather-temp" id="weatherText">⌛ 날씨 조회 중...</div>
         </div>
       </div>
     </div>
@@ -147,8 +151,7 @@
         const response = await fetch('./menu_data.json?v=' + new Date().getTime());
         if (response.ok) {
           const data = await response.json();
-          // 배열 형식이 맞는지 검증
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && data.length > 0) {
             fullMenuList = data;
           } else {
             fullMenuList = [];
@@ -198,6 +201,8 @@
       
       try {
         const regionName = isFallback ? "서울" : await getRegionName(lat, lon);
+        document.getElementById('locationName').textContent = `📍 ${regionName}`;
+
         const res = await fetch(weatherUrl);
         const data = await res.json();
 
@@ -205,7 +210,7 @@
           const temp = Math.round(data.current_weather.temperature);
           const weatherInfo = parseWeatherCode(data.current_weather.weathercode);
           
-          document.getElementById('weatherText').textContent = `${regionName} ${weatherInfo.icon} ${weatherInfo.text} (${temp}°C)`;
+          document.getElementById('weatherText').textContent = `${weatherInfo.icon} ${weatherInfo.text} (${temp}°C)`;
         } else {
           setFallbackWeather();
         }
@@ -231,10 +236,11 @@
     }
 
     function setFallbackWeather() {
-      document.getElementById('weatherText').textContent = "서울 🌡️ 날씨 정보 없음";
+      document.getElementById('locationName').textContent = "📍 서울";
+      document.getElementById('weatherText').textContent = "🌡️ 날씨 정보 없음";
     }
 
-    // 4개씩 포인터를 이동하며 자르는 함수
+    // 4개씩 정확히 잘라내기
     function getNext4Menus() {
       if (currentIndex >= fullMenuList.length) {
         currentIndex = 0;
