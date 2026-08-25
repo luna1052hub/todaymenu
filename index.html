@@ -135,16 +135,13 @@
 
   <script>
     let fullMenuList = [];
-    let remainingMenuList = [];
-    let isFirstClick = true;
+    let currentIndex = 0; // 보여줄 시작 위치 인덱스
 
     async function loadTrendingMenuData() {
       try {
         const response = await fetch('./menu_data.json?v=' + new Date().getTime());
         if (response.ok) {
           fullMenuList = await response.json();
-          // 처음에 남은 목록 복사
-          remainingMenuList = [...fullMenuList];
         }
       } catch (e) {
         fullMenuList = [];
@@ -160,28 +157,15 @@
       document.getElementById('currentDay').textContent = days[now.getDay()];
     }
 
-    // 중복 없이 4개 뽑기 함수
+    // 인덱스 기반으로 4개씩 슬라이스 (절대 중복 없음)
     function getNext4Menus() {
-      // 1. 첫 클릭인 경우: 상위 1~4위 리턴
-      if (isFirstClick) {
-        isFirstClick = false;
-        const top4 = fullMenuList.slice(0, 4);
-        // 이미 보여준 1~4위는 남은 목록에서 제거
-        remainingMenuList = fullMenuList.slice(4);
-        return top4;
+      // 끝까지 가거나 4개가 안 남으면 다시 처음부터
+      if (currentIndex >= fullMenuList.length) {
+        currentIndex = 0;
       }
 
-      // 2. 남은 데이터가 4개 미만이면 전체 목록으로 리셋
-      if (remainingMenuList.length < 4) {
-        remainingMenuList = [...fullMenuList];
-      }
-
-      // 3. 남은 데이터 중 랜덤하게 4개 추출 (중복 제거)
-      remainingMenuList.sort(() => 0.5 - Math.random());
-      const selected = remainingMenuList.slice(0, 4);
-      
-      // 뽑힌 4개는 남은 목록에서 제외
-      remainingMenuList = remainingMenuList.filter(item => !selected.includes(item));
+      const selected = fullMenuList.slice(currentIndex, currentIndex + 4);
+      currentIndex += 4; // 다음 4개 위치로 포인터 이동
 
       return selected;
     }
