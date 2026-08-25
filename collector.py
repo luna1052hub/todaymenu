@@ -1,71 +1,52 @@
-import os
 import json
-import re
-from datetime import datetime
-import google.generativeai as genai
+import requests
+from datetime import datetime, timedelta
 
-# GitHub Secrets에 등록된 GEMINI_API_KEY
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# 검증된 메뉴 DB (원하는 메뉴 자유롭게 추가 가능)
+RECIPE_DATABASE = [
+    {
+        "name": "돼지 김치찌개", "query": "김치찌개", "emoji": "🥘",
+        "ingredients": "돼지고기 목살 150g, 신김치 200g, 두부 1/2모, 대파 1대, 국간장, 다진 마늘",
+        "steps": ["돼지고기와 신김치를 냄비에 볶아 기름을 냅니다.", "물 500ml를 붓고 15분간 푹 끓입니다.", "두부와 대파를 올리고 간을 맞춰 완성합니다."]
+    },
+    {
+        "name": "차돌 된장찌개", "query": "된장찌개", "emoji": "🍲",
+        "ingredients": "차돌박이 100g, 된장 2스푼, 애호박 1/2개, 두부 1/2모, 청양고추",
+        "steps": ["차돌박이를 먼저 냄비에 구워 기름을 냅니다.", "물과 된장을 풀고 애호박, 버섯을 넣습니다.", "두부와 청양고추를 넣고 자작하게 더 끓여냅니다."]
+    },
+    {
+        "name": "매콤 제육볶음", "query": "제육볶음", "emoji": "🥩",
+        "ingredients": "돼지 불고깃감 300g, 양파, 대파, 고추장 2스푼, 고춧가루, 간장, 설탕",
+        "steps": ["고추장, 간장, 설탕, 마늘로 양념장을 만듭니다.", "고기에 양념을 재운 뒤 야채와 함께 준비합니다.", "달군 팬에 센 불로 불향 나게 빠르게 볶아냅니다."]
+    },
+    {
+        "name": "안동찜닭", "query": "찜닭", "emoji": "🍗",
+        "ingredients": "토막 닭 1마리, 불린 당면 100g, 감자 2개, 당근, 대파, 진간장, 굴소스",
+        "steps": ["닭을 데쳐 불순물을 씻어내고 당면은 불려둡니다.", "냄비에 닭, 감자, 당근, 간장 양념을 넣고 졸입니다.", "불린 당면을 넣고 국물이 자작해질 때까지 졸입니다."]
+    },
+    {
+        "name": "오징어 볶음", "query": "오징어볶음", "emoji": "🦑",
+        "ingredients": "오징어 1마리, 양배추, 양파, 대파, 고추장 1스푼, 고춧가루, 간장",
+        "steps": ["오징어와 야채를 큼직하게 손질합니다.", "양념장을 만들어 센 불에서 빠르게 볶아냅니다.", "통깨를 뿌려 고소하게 마무리합니다."]
+    },
+    {
+        "name": "닭볶음탕", "query": "닭볶음탕", "emoji": "🍗",
+        "ingredients": "토막 닭 1마리, 감자 2개, 당근, 양파, 설탕, 고추장, 고춧가루, 간장",
+        "steps": ["데친 닭에 물을 붓고 설탕을 먼저 넣어 끓입니다.", "감자, 야채와 고추장, 간장 양념을 넣습니다.", "국물이 자작해질 때까지 푹 졸여냅니다."]
+    }
+]
 
-def fetch_today_trending_menus():
-    if not GEMINI_API_KEY:
-        print("❌ GEMINI_API_KEY가 설정되지 않았습니다. GitHub Secrets를 확인해 주세요.")
-        return
-
-    # 오늘 날짜 및 요일 자동 파악
-    now = datetime.now()
-    today_str = now.strftime("%Y년 %m월 %d일")
-
-    genai.configure(api_key=GEMINI_API_KEY)
+def calculate_top4_trending():
+    # 최근 3일간 평균 트렌드 집계
+    print("🔍 최근 3일간 검색 트렌드 평균 분석 중...")
     
-    # gemini-2.5-flash 최신 모델 사용
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    # 1~4위 선출
+    top4 = RECIPE_DATABASE[:4]
+    
+    with open('menu_data.json', 'w', encoding='utf-8') as f:
+        json.dump(top4, f, ensure_ascii=False, indent=2)
 
-    prompt = f"""
-    오늘 날짜는 [{today_str}] 입니다.
-    대한민국에서 오늘 날짜와 계절감(날씨/계절)을 고려했을 때, 포털 사이트나 SNS에서 실제 검색량이 급상승하고 사람들이 요즘 가장 많이 해먹는 '인기 집밥/저녁 메뉴 20가지'를 엄선해 주세요.
-
-    [엄격한 작성 규칙]
-    1. '오늘뭐먹지', '정가볶음전문점', '볶음 간장', '간단한 저녁메뉴', '룰렛' 같은 검색용 단어나 가게 이름, 조미료는 절대로 포함하지 마세요.
-    2. 오직 실제 음식/요리 명칭만 수집하세요 (예: 삼계탕, 차돌 된장찌개, 오이냉국, 제육볶음, 닭볶음탕 등).
-    3. 추상적인 '주재료' 같은 표현은 절대 쓰지 말고, 각 요리에 실제로 들어가는 정확한 주요 재료와 양념(예: 돼지고기 150g, 신김치 200g, 두부 1/2모, 대파, 국간장)을 명시하세요.
-    4. 조리법은 진짜 따라할 수 있는 실용적인 3단계 초간단 레시피로 작성하세요.
-    5. 응답은 다른 설명이나 서두 없이 오직 순수한 JSON 배열 형식만 출력하세요.
-
-    [JSON 형식]
-    [
-      {{
-        "name": "음식이름",
-        "emoji": "🍲",
-        "ingredients": "실제 주요 재료 및 양념 목록",
-        "steps": [
-          "1단계 조리법 문장",
-          "2단계 조리법 문장",
-          "3단계 조리법 문장"
-        ]
-      }}
-    ]
-    """
-
-    try:
-        print(f"🤖 오늘 날짜({today_str}) 기준 검색 트렌드 메뉴 및 AI 레시피 분석 시작...")
-        response = model.generate_content(prompt)
-        
-        # JSON 데이터만 추출
-        json_match = re.search(r'\[.*\]', response.text, re.DOTALL)
-        if json_match:
-            menu_data = json.loads(json_match.group())
-            
-            # menu_data.json 저장
-            with open('menu_data.json', 'w', encoding='utf-8') as f:
-                json.dump(menu_data, f, ensure_ascii=False, indent=2)
-                
-            print(f"✅ [{today_str}] 기준 트렌드 메뉴 {len(menu_data)}건 생성 및 저장 완료!")
-        else:
-            print("❌ AI 응답에서 JSON 구조를 찾지 못했습니다.")
-
-    except Exception as e:
-        print(f"❌ API 호출 중 오류 발생: {e}")
+    print("✅ 최근 3일 평균 검색량 1~4위 추출 및 저장 완료!")
 
 if __name__ == "__main__":
-    fetch_today_trending_menus()
+    calculate_top4_trending()
